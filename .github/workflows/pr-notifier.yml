@@ -1,0 +1,183 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# PR Notifier — Reusable Workflow
+# Repo: org/devops-workflows
+# Path: .github/workflows/pr-notifier.yml
+#
+# Called by any repo in the org via `workflow_call`.
+# Handles all PR lifecycle events and syncs to Slack + Notion.
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: PR Notifier (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      # Passed automatically by the caller — no need to set manually
+      event_name:
+        type: string
+        required: true
+      event_action:
+        type: string
+        required: true
+      pr_number:
+        type: string
+        required: true
+      pr_title:
+        type: string
+        required: true
+      pr_url:
+        type: string
+        required: true
+      pr_author:
+        type: string
+        required: true
+      pr_body:
+        type: string
+        required: false
+        default: ""
+      pr_draft:
+        type: string
+        required: false
+        default: "false"
+      pr_merged:
+        type: string
+        required: false
+        default: "false"
+      pr_merged_by:
+        type: string
+        required: false
+        default: ""
+      head_branch:
+        type: string
+        required: true
+      base_branch:
+        type: string
+        required: true
+      repo_name:
+        type: string
+        required: true
+      repo_url:
+        type: string
+        required: true
+      additions:
+        type: string
+        required: false
+        default: "0"
+      deletions:
+        type: string
+        required: false
+        default: "0"
+      changed_files:
+        type: string
+        required: false
+        default: "0"
+      reviewers:
+        type: string
+        required: false
+        default: ""
+      labels:
+        type: string
+        required: false
+        default: ""
+      review_state:
+        type: string
+        required: false
+        default: ""
+      review_author:
+        type: string
+        required: false
+        default: ""
+      review_body:
+        type: string
+        required: false
+        default: ""
+      review_url:
+        type: string
+        required: false
+        default: ""
+      comment_author:
+        type: string
+        required: false
+        default: ""
+      comment_body:
+        type: string
+        required: false
+        default: ""
+      comment_url:
+        type: string
+        required: false
+        default: ""
+      comment_file:
+        type: string
+        required: false
+        default: ""
+      comment_line:
+        type: string
+        required: false
+        default: ""
+    secrets:
+      SLACK_BOT_TOKEN:
+        required: true
+      SLACK_CHANNEL_ID:
+        required: true
+      NOTION_TOKEN:
+        required: true
+      NOTION_DATABASE_ID:
+        required: true
+
+jobs:
+  notify:
+    name: Notify Slack + Notion
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout central workflows repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/devops-workflows
+          path: devops-workflows
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: |
+          cd devops-workflows/scripts
+          npm install
+
+      - name: Run PR notifier
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          EVENT_NAME: ${{ inputs.event_name }}
+          EVENT_ACTION: ${{ inputs.event_action }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          PR_TITLE: ${{ inputs.pr_title }}
+          PR_URL: ${{ inputs.pr_url }}
+          PR_AUTHOR: ${{ inputs.pr_author }}
+          PR_BODY: ${{ inputs.pr_body }}
+          PR_DRAFT: ${{ inputs.pr_draft }}
+          PR_MERGED: ${{ inputs.pr_merged }}
+          PR_MERGED_BY: ${{ inputs.pr_merged_by }}
+          HEAD_BRANCH: ${{ inputs.head_branch }}
+          BASE_BRANCH: ${{ inputs.base_branch }}
+          REPO_NAME: ${{ inputs.repo_name }}
+          REPO_URL: ${{ inputs.repo_url }}
+          ADDITIONS: ${{ inputs.additions }}
+          DELETIONS: ${{ inputs.deletions }}
+          CHANGED_FILES: ${{ inputs.changed_files }}
+          REVIEWERS: ${{ inputs.reviewers }}
+          LABELS: ${{ inputs.labels }}
+          REVIEW_STATE: ${{ inputs.review_state }}
+          REVIEW_AUTHOR: ${{ inputs.review_author }}
+          REVIEW_BODY: ${{ inputs.review_body }}
+          REVIEW_URL: ${{ inputs.review_url }}
+          COMMENT_AUTHOR: ${{ inputs.comment_author }}
+          COMMENT_BODY: ${{ inputs.comment_body }}
+          COMMENT_URL: ${{ inputs.comment_url }}
+          COMMENT_FILE: ${{ inputs.comment_file }}
+          COMMENT_LINE: ${{ inputs.comment_line }}
+        run: node devops-workflows/scripts/notifier.js

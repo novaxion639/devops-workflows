@@ -1,0 +1,23 @@
+{
+  "name": "github-pr-notifier",
+  "version": "1.0.0",
+  "description": "GitHub PR → Slack thread + Notion dashboard notifications",
+  "type": "module",
+  "main": "src/handler.js",
+  "scripts": {
+    "dev": "node --watch src/dev-server.js",
+    "start": "node src/dev-server.js",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest"
+  },
+  "dependencies": {
+    "@notionhq/client": "^2.2.15",
+    "@slack/web-api": "^7.0.0"
+  },
+  "devDependencies": {
+    "express": "^4.18.2",
+    "dotenv": "^16.4.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
